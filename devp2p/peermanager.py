@@ -173,14 +173,13 @@ class PeerManager(WiredService):
         log.info('waiting for bootstrap')
         gevent.sleep(self.discovery_delay)
         while not self.is_stopped:
-            num_peers, min_peers = self.num_peers(), self.config['p2p']['min_peers']
-            try:
-                kademlia_proto = self.app.services.discovery.protocol.kademlia
-            except AttributeError:
-                # TODO: Is this the correct thing to do here?
+            if 'discovery' not in self.app.services:
                 log.error("Discovery service not available.")
                 break
+
+            num_peers, min_peers = self.num_peers(), self.config['p2p']['min_peers']
             if num_peers < min_peers:
+                kademlia_proto = self.app.services.discovery.protocol.kademlia
                 log.debug('missing peers', num_peers=num_peers,
                           min_peers=min_peers, known=len(kademlia_proto.routing))
                 nodeid = kademlia.random_nodeid()
